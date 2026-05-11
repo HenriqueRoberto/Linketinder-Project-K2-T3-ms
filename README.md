@@ -141,6 +141,93 @@ src/main/groovy/linketinder/
 
 ---
 
+
+---
+
+## 🔌 Microserviço de Cadastro
+
+### O que foi implementado
+
+Um microserviço independente de cadastro, sem uso de frameworks, que expõe dois endpoints HTTP para registrar candidatos e empresas diretamente no banco de dados PostgreSQL.
+
+O microserviço possui seu próprio ponto de entrada (`CadastroMain`) e pode ser executado em paralelo à aplicação principal em uma segunda instância do IntelliJ.
+
+### Estrutura
+
+```
+src/main/groovy/linketinder/microservice/
+├── CadastroMain.groovy     ← ponto de entrada independente
+├── CadastroServer.groovy   ← sobe o HttpServer na porta 8080 e injeta dependências
+└── CadastroHandler.groovy  ← trata as requisições e chama os services
+```
+
+### Tecnologia utilizada
+
+O servidor HTTP foi implementado com `com.sun.net.httpserver.HttpServer`, uma API nativa do JDK — sem nenhuma dependência externa ou framework. O parse e a serialização de JSON foram feitos com `JsonSlurper` e `JsonOutput`, módulos nativos do Groovy.
+
+### Endpoints
+
+| Método | Rota                  | Descrição                      |
+|--------|-----------------------|--------------------------------|
+| POST   | `/cadastro/candidato` | Cadastra um candidato no banco |
+| POST   | `/cadastro/empresa`   | Cadastra uma empresa no banco  |
+
+#### Exemplo — cadastrar candidato
+
+```bash
+curl -X POST http://localhost:8080/cadastro/candidato \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome": "João Silva",
+    "email": "joao@email.com",
+    "cpf": "123.456.789-00",
+    "idade": 25,
+    "estado": "SP",
+    "cep": "01310-100",
+    "descricao": "Desenvolvedor backend",
+    "senha": "senha123"
+  }'
+```
+
+#### Exemplo — cadastrar empresa
+
+```bash
+curl -X POST http://localhost:8080/cadastro/empresa \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nome": "Tech Corp",
+    "email": "contato@techcorp.com",
+    "cnpj": "12.345.678/0001-90",
+    "pais": "Brasil",
+    "estado": "SP",
+    "cep": "01310-100",
+    "descricao": "Empresa de tecnologia",
+    "senha": "senha123"
+  }'
+```
+
+#### Respostas
+
+| Status | Situação                              |
+|--------|---------------------------------------|
+| 201    | Cadastro realizado, retorna o `id`    |
+| 400    | E-mail já cadastrado ou dado inválido |
+| 404    | Rota não encontrada                   |
+| 405    | Método diferente de POST              |
+| 500    | Erro interno inesperado               |
+
+### Como executar o microserviço
+
+1. No IntelliJ, clique com o botão direito em `CadastroMain.groovy`
+2. Selecione **Run 'CadastroMain'**
+3. O microserviço ficará disponível em `http://localhost:8080`
+
+O microserviço pode rodar em paralelo à aplicação principal em uma segunda instância do IntelliJ.
+
+### Sobre a integração com o frontend
+
+A integração entre o frontend web e o microserviço foi explorada como item experimental. O frontend atualmente persiste os dados de cadastro via `localStorage`. Para integrar com o microserviço, o fluxo de cadastro do frontend precisaria enviar os dados via requisição HTTP para os endpoints acima, em vez de salvar localmente. O microserviço já inclui os headers de **CORS** necessários para aceitar requisições do browser. A integração completa não foi implementada pois é um requisito exploratório.
+
 ## 🏃 Como Executar
 
 ### Pré-requisitos
